@@ -20,13 +20,15 @@ namespace JFLibrary
         /// <returns></returns>
         public static bool IsPhoneFormatTrue(this string MobilePhone)
         {
-            if (string.IsNullOrEmpty(MobilePhone)) return false;
-            var a = Regex.IsMatch(MobilePhone, @"^(0\d{2,3})-?(\d{7,8})$");
-            var b = Regex.IsMatch(MobilePhone,
+            if (string.IsNullOrEmpty(MobilePhone))
+            {
+                return false;
+            }
+
+            bool a = Regex.IsMatch(MobilePhone, @"^(0\d{2,3})-?(\d{7,8})$");
+            bool b = Regex.IsMatch(MobilePhone,
                 @"^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$");
-            if (a || b)
-                return true;
-            return false;
+            return a || b;
         }
 
         #endregion
@@ -42,8 +44,8 @@ namespace JFLibrary
         /// <returns></returns>
         public static bool IsCarNumberFormatTrue(this string CarNumber)
         {
-            if (string.IsNullOrEmpty(CarNumber)) return false;
-            return Regex.IsMatch(CarNumber,
+            return !string.IsNullOrEmpty(CarNumber)
+&& Regex.IsMatch(CarNumber,
                 @"^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z]{1}[A-Z0-9]{4,5}[A-Z0-9挂学警港澳]");
         }
 
@@ -60,8 +62,8 @@ namespace JFLibrary
         /// <returns></returns>
         public static bool IsIPAdressFormatTrue(this string IPAdress)
         {
-            if (string.IsNullOrEmpty(IPAdress)) return false;
-            return Regex.IsMatch(IPAdress, @"^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$");
+            return !string.IsNullOrEmpty(IPAdress)
+&& Regex.IsMatch(IPAdress, @"^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$");
         }
 
         #endregion

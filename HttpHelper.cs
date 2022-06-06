@@ -1,13 +1,7 @@
 ﻿using Newtonsoft.Json;
-using NLog;
-using NLog.Fluent;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace JFLibrary
 {
@@ -27,7 +21,7 @@ namespace JFLibrary
         /// <summary>
         /// 创建HttpClient实例
         /// </summary>
-        private static readonly HttpClient httpClient = new HttpClient(new SocketsHttpHandler()
+        private static readonly HttpClient httpClient = new(new SocketsHttpHandler()
         {
             AllowAutoRedirect = true,// 默认为true,是否允许冲顶定向
             MaxAutomaticRedirections = 50,//最多重定向几次,默认50次
@@ -45,11 +39,11 @@ namespace JFLibrary
         /// <returns></returns>
         public static string run_get_request(string url, IDictionary<string, string>? headers = null)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebRequest? request = (HttpWebRequest)WebRequest.Create(url);
             HttpWebResponse? response = null;
             Stream? myResponseStream = null;
             StreamReader? myStreamReader = null;
-            var _jsonVal = string.Empty;
+            string? _jsonVal = string.Empty;
             try
             {
                 request.Method = "GET";
@@ -57,27 +51,43 @@ namespace JFLibrary
                 request.ContentType = "application/json";
                 request.Timeout = 10 * 1000;
                 if (headers != null)
-                    foreach (var item in headers)
+                {
+                    foreach (KeyValuePair<string, string> item in headers)
+                    {
                         request.Headers[item.Key] = item.Value;
+                    }
+                }
 
                 response = (HttpWebResponse)request.GetResponse();
                 myResponseStream = response.GetResponseStream();
                 myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
                 _jsonVal = myStreamReader.ReadToEnd();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
             finally
             {
-                if (myStreamReader != null) myStreamReader.Close();
+                if (myStreamReader != null)
+                {
+                    myStreamReader.Close();
+                }
 
-                if (myResponseStream != null) myResponseStream.Close();
+                if (myResponseStream != null)
+                {
+                    myResponseStream.Close();
+                }
 
-                if (response != null) response.Close();
+                if (response != null)
+                {
+                    response.Close();
+                }
 
-                if (request != null) request.Abort();
+                if (request != null)
+                {
+                    request.Abort();
+                }
             }
 
             return _jsonVal;
@@ -96,11 +106,11 @@ namespace JFLibrary
         /// <returns></returns>
         public static string run_post_request(string url, string param, IDictionary<string, string> headers = null)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebRequest? request = (HttpWebRequest)WebRequest.Create(url);
             HttpWebResponse? response = null;
             Stream? myResponseStream = null;
             StreamReader? myStreamReader = null;
-            var _jsonVal = string.Empty;
+            string? _jsonVal = string.Empty;
             try
             {
                 //基础请求设置
@@ -112,7 +122,7 @@ namespace JFLibrary
                 byte[] payload;
                 payload = Encoding.UTF8.GetBytes(param);
 
-                var writer = request.GetRequestStream();
+                Stream? writer = request.GetRequestStream();
                 writer.Write(payload, 0, payload.Length);
                 writer.Close();
                 //网络请求
@@ -121,19 +131,31 @@ namespace JFLibrary
                 myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
                 _jsonVal = myStreamReader.ReadToEnd();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
             finally
             {
-                if (myStreamReader != null) myStreamReader.Close();
+                if (myStreamReader != null)
+                {
+                    myStreamReader.Close();
+                }
 
-                if (myResponseStream != null) myResponseStream.Close();
+                if (myResponseStream != null)
+                {
+                    myResponseStream.Close();
+                }
 
-                if (response != null) response.Close();
+                if (response != null)
+                {
+                    response.Close();
+                }
 
-                if (request != null) request.Abort();
+                if (request != null)
+                {
+                    request.Abort();
+                }
             }
 
             return _jsonVal;
@@ -156,8 +178,8 @@ namespace JFLibrary
         {
             // 校验url是否为空
             if (string.IsNullOrEmpty(url)) { return string.Empty; }
-            var id = Guid.NewGuid().ToString("N");
-            Stopwatch? Stopwatch = new Stopwatch();
+            string? id = Guid.NewGuid().ToString("N");
+            Stopwatch? Stopwatch = new();
             Logs.LogWriter($"请求ID：{id} 【请求开始】请求地址：{url}");
             Logs.LogWriter($"请求ID：{id} 【请求开始】请求参数：{param}");
             string result = string.Empty;
@@ -166,22 +188,22 @@ namespace JFLibrary
             {
                 Stopwatch.Start();
                 // 发出HTTP请求并获取响应数据
-                var response = httpClient.PostAsync(url, new StringContent(param, Encoding.UTF8, "application/json"));
+                Task<HttpResponseMessage>? response = httpClient.PostAsync(url, new StringContent(param, Encoding.UTF8, "application/json"));
                 Logs.LogWriter($"请求ID：{id} 【请求开始】请求头：{JsonConvert.SerializeObject(httpClient.DefaultRequestHeaders)}");
                 // 在这里会等待task返回。
                 responceResult = response.Result;
-                var httpResult = responceResult.Content.ReadAsStringAsync();
+                Task<string>? httpResult = responceResult.Content.ReadAsStringAsync();
                 result = httpResult.Result;
             }
             catch (Exception ex)
-{
+            {
                 Logs.Error(ex.ToString());
             }
             finally
             {
                 if (responceResult != null) { responceResult.Dispose(); }
                 Stopwatch.Stop();
-}
+            }
             Logs.LogWriter($"请求ID：{id} 【请求结束】响应参数：{JsonConvert.SerializeObject(result)}");
             Logs.LogWriter($"请求ID：{id} 【请求结束】请求结束-相应时间：{Stopwatch.ElapsedMilliseconds}毫秒");
             return result;
@@ -203,18 +225,18 @@ namespace JFLibrary
         {
             // 校验url是否为空
             if (string.IsNullOrEmpty(url)) { return; }
-            string result = string.Empty;
+
             HttpResponseMessage? response = null;
             try
             {
                 // 发出HTTP请求并获取响应数据
                 response = await httpClient.PostAsync(url, new StringContent(param, Encoding.UTF8, "application/json"));
-                var httpResult = await response.Content.ReadAsStringAsync();
+                string? httpResult = await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
                 Logs.Error(ex.ToString());
-}
+            }
             finally
             {
                 if (response != null)
@@ -252,16 +274,18 @@ namespace JFLibrary
             string result = string.Empty;
             try
             {
-                var formData = new MultipartFormDataContent();
-                formData.Add(new ByteArrayContent(data), "file", fileName);
+                MultipartFormDataContent? formData = new()
+                {
+                    { new ByteArrayContent(data), "file", fileName }
+                };
                 response = httpClient.PostAsync(url, formData).Result;
-                response.EnsureSuccessStatusCode();
+                _ = response.EnsureSuccessStatusCode();
                 result = response.Content.ReadAsStringAsync().Result;
             }
             catch (Exception ex)
             {
                 Logs.Error(ex.ToString());
-}
+            }
             finally
             {
                 if (response != null) { response.Dispose(); }
